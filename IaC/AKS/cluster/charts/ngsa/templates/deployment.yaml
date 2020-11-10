@@ -41,6 +41,16 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
+            - name: Zone
+              valueFrom:
+                configMapKeyRef:
+                  name: {{  include "ngsa.fullname" . }}-config
+                  key: Zone
+            - name: Region
+              valueFrom:
+                configMapKeyRef:
+                  name: {{  include "ngsa.fullname" . }}-config
+                  key: Region
           ports:
             - name: http
               containerPort: {{ .Values.app.port }}
@@ -65,7 +75,7 @@ spec:
               mountPath: "/app/secrets"
         - name: log
           imagePullPolicy: Always
-          image: retaildevcrew/logagent:beta
+          image: "{{ .Values.log.image.repository }}:{{ .Values.log.image.tag }}"
           env:
           - name: WorkspaceId
             valueFrom:

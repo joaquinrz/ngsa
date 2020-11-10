@@ -5,3 +5,6 @@ log:
   name: "ngsa"
   region: ""
   zone: ""
+  image:
+    repository: retaildevcrew/logagent
+    tag: latest

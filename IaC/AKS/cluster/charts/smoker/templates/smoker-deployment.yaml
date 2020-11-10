@@ -36,7 +36,7 @@ spec:
             - '-v'
         - name: log
           imagePullPolicy: Always
-          image: retaildevcrew/logagent:beta
+          image: "{{ .Values.log.image.repository }}:{{ .Values.log.image.tag }}"
           env:
           - name: WorkspaceId
             valueFrom:
