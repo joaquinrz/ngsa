@@ -30,7 +30,7 @@ jobs:
       # copy the config value to environment variables
       # do not copy the actual secrets!
 
-      DOCKER_REPO: retaildevcrew/ngsa
+      DOCKER_REPO: joaquinrodriguez/ngsa
 
       # These are used in if: conditions
       DOCKER_SET: false
@@ -104,33 +104,31 @@ jobs:
       run: |
         dotnet tool install -g webvalidate
 
-    - name: Start helium container
-      if: ${{ env.COSMOS_SET == 'true' }}
+    - name: Start NGSA container
       run: |
         # run the app
         docker run -d --name ngsa -p 4120:4120 test
         
         echo "Waiting for web server to start ..."
         sleep 10
-
+        wait_time=10        
+        
         # wait up to 30 seconds for web server to start
-        wait_time=10
-
         while true
         do
-          if curl localhost:4120/version ; then
-            echo "web server is running"
-            break
-          fi
-
-          if [ $wait_time -gt 30 ] ; then
-            echo "timeout waiting for web server to start"
-            exit 1
-          fi
-
-          # sleep and try again
-          sleep 2
-          wait_period=$(($wait_time+1))
+            if curl localhost:4120/version ; then
+                echo "web server is running"
+                export APP_VERSION=`curl localhost:4120/version |  jq -r '.appVersion'`
+                break
+            fi
+            if [ $wait_time -gt 30 ] ; then
+              echo "timeout waiting for web server to start"
+              exit 1
+            fi
+            
+            sleep 1
+            echo wait_time: $wait_time
+            ((wait_time=wait_time+1))
         done
 
     - name: Run WebV
@@ -151,7 +149,7 @@ jobs:
     - name: Display coverage results
       if: ${{ env.COSMOS_SET == 'true' }}
       run: |
-        # wait for helium to shutdown
+        # wait for NGSA to shutdown
         sleep 15
 
         # display the results
@@ -183,20 +181,16 @@ jobs:
     - name: Docker Tag and Push
       if: ${{ env.DOCKER_SET == 'true' }}
       run: |
-        # tag the repo with :beta
-        docker tag image $DOCKER_REPO:beta
-
-        # Tag image based on repo tag if a github label
-        if [[ "${{ github.ref }}" == "refs/tags/"* ]]
-        then
-
-          # Strip git ref prefix from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,'  | sed -e 's/^v//')
-
-          # tag the image with :version and :latest
-          docker tag image $DOCKER_REPO:$VERSION
-          docker tag image $DOCKER_REPO:latest
+        if [[ -z "${APP_VERSION}" ]]; then
+          echo "APP_VERSION not set, cannot proceed with docker tag and push"
+          exit 1
         fi
+        
+        # tag the repo with :beta and semver
+        semver=$APP_VERSION-${{ github.run_number }}
+
+        docker tag image $DOCKER_REPO:beta
+        docker tag image $DOCKER_REPO:beta-$semver
 
         # Push to the repo
         docker push $DOCKER_REPO
