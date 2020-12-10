@@ -105,6 +105,7 @@ jobs:
         dotnet tool install -g webvalidate
 
     - name: Start NGSA container
+      if: ${{ env.COSMOS_SET == 'true' }}
       run: |
         # run the app
         docker run -d --name ngsa -p 4120:4120 test
