@@ -187,11 +187,20 @@ jobs:
           exit 1
         fi
         
-        # tag the repo with :beta and semver
+        # Tag the image with :beta and semver
         semver=$APP_VERSION-${{ github.run_number }}
-
         docker tag image $DOCKER_REPO:beta
         docker tag image $DOCKER_REPO:beta-$semver
+
+        # Tag image based on repo tag if a github label
+        if [[ "${{ github.ref }}" == "refs/tags/"* ]]
+        then
+          # Strip git ref prefix from version
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,'  | sed -e 's/^v//')
+          # tag the image with :version and :latest
+          docker tag image $DOCKER_REPO:$VERSION
+          docker tag image $DOCKER_REPO:latest
+        fi
 
         # Push to the repo
         docker push $DOCKER_REPO
