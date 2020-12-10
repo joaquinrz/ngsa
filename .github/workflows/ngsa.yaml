@@ -119,12 +119,12 @@ jobs:
         while true
         do
             if curl localhost:4120/version ; then
-                echo "\n web server is running"
+                echo -e "\n web server is running"
                 echo APP_VERSION=`curl localhost:4120/version |  jq -r '.appVersion'` >> $GITHUB_ENV
                 break
             fi
             if [ $wait_time -gt 30 ] ; then
-              echo "\n timeout waiting for web server to start"
+              echo -e "\n timeout waiting for web server to start"
               exit 1
             fi
             
