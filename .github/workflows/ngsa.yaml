@@ -119,7 +119,7 @@ jobs:
         do
             if curl localhost:4120/version ; then
                 echo "web server is running"
-                export APP_VERSION=`curl localhost:4120/version |  jq -r '.appVersion'`
+                echo APP_VERSION=`curl localhost:4120/version |  jq -r '.appVersion'` >> $GITHUB_ENV
                 break
             fi
             if [ $wait_time -gt 30 ] ; then
@@ -189,6 +189,8 @@ jobs:
         
         # tag the repo with :beta and semver
         semver=$APP_VERSION-${{ github.run_number }}
+
+        echo "$semver"
 
         docker tag image $DOCKER_REPO:beta
         docker tag image $DOCKER_REPO:beta-$semver
