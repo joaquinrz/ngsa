@@ -188,6 +188,9 @@ jobs:
           echo "APP_VERSION not set, cannot proceed with docker tag and push"
           exit 1
         fi
+
+        echo -e "EVENT NAME \n"
+        echo ${{github.event_name}}
         
         # Tag the image with :beta and semver
         semver=$APP_VERSION-${{ github.run_number }}
